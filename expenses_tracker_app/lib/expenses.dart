@@ -1,3 +1,4 @@
+import 'package:expenses_tracker_app/model/expense.dart';
 import 'package:expenses_tracker_app/widgets/expenses_list/expenses_list.dart';
 import 'package:expenses_tracker_app/widgets/new_expense.dart';
 import 'package:flutter/material.dart';
@@ -15,13 +16,57 @@ class Expenses extends StatefulWidget {
 class _ExpensesState extends State<Expenses> {
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
-      builder: (ctx) => NewExpense(),
+      builder: (ctx) => NewExpense(onAddExpense: _addExpense),
+    );
+  }
+
+  void _addExpense(Expense expense) {
+    setState(() {
+      expenses.add(expense);
+    });
+  }
+
+  void _removeExpense(Expense expense) {
+    final expenseIndex = expenses.indexOf(expense);
+    setState(() {
+      expenses.remove(expense);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(
+      SnackBar(
+        duration: Duration(seconds: 3),
+        content: const Text('Despesa apagada'),
+        action: SnackBarAction(
+          label: 'Desfazer',
+          onPressed: () {
+            setState(() {
+              expenses.insert(expenseIndex, expense);
+            });
+          },
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget mainContent = const Center(
+      child: Text('Nenhuma despesa encontrada'),
+    );
+
+    if (expenses.isNotEmpty) {
+      mainContent = Expanded(
+        child: ExpensesList(
+          expenses: expenses,
+          onRemoveExpense: _removeExpense,
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Flutter Expense Tracker'),
@@ -33,12 +78,7 @@ class _ExpensesState extends State<Expenses> {
         ],
       ),
       body: Column(
-        children: [
-          Text('Chart'),
-          Expanded(
-            child: ExpensesList(expenses: expenses),
-          ),
-        ],
+        children: [Text('Chart'), mainContent],
       ),
     );
   }
