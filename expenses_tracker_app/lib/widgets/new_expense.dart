@@ -91,88 +91,195 @@ class _NewExpenseState extends State<NewExpense> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
-      child: Column(
-        children: [
-          TextField(
-            controller: _titleController,
-            maxLength: 50,
-            keyboardType: TextInputType.text,
-            decoration: InputDecoration(label: Text('Nome')),
-          ),
+    final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
 
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _amountController,
-                  maxLength: 50,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    prefixText: '\$ ',
-                    label: Text('Valor'),
-                  ),
-                ),
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      _selectedDate == null
-                          ? 'Nenhuma data'
-                          : formatter.format(_selectedDate!),
-                    ),
-                    IconButton(
-                      onPressed: _presentDatePicket,
-                      icon: Icon(Icons.calendar_month),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              DropdownButton(
-                value: _seletedCategory,
-                items: Category.values
-                    .map(
-                      (category) => DropdownMenuItem(
-                        value: category,
-                        child: Text(category.name.toUpperCase()),
-                      ),
+    return LayoutBuilder(
+      builder: (ctx, constrains) {
+        final width = constrains.maxWidth;
+
+        return SizedBox(
+          height: double.infinity,
+          width: double.infinity,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, keyboardSpace + 16),
+              child: Column(
+                children: [
+                  if (width >= 600)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _titleController,
+                            maxLength: 50,
+                            keyboardType: TextInputType.text,
+                            decoration: InputDecoration(label: Text('Nome')),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 24,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            maxLength: 50,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              prefixText: '\$ ',
+                              label: Text('Valor'),
+                            ),
+                          ),
+                        ),
+                      ],
                     )
-                    .toList(),
-                onChanged: (value) {
-                  if (value == null) {
-                    return;
-                  }
-                  setState(() {
-                    _seletedCategory = value;
-                  });
-                },
-              ),
-              const Spacer(),
+                  else
+                    TextField(
+                      controller: _titleController,
+                      maxLength: 50,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(label: Text('Nome')),
+                    ),
 
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Cancelar'),
+                  if (width >= 600)
+                    Row(
+                      children: [
+                        DropdownButton(
+                          value: _seletedCategory,
+                          items: Category.values
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  value: category,
+                                  child: Text(category.name.toUpperCase()),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setState(() {
+                              _seletedCategory = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(
+                          width: 24,
+                        ),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                _selectedDate == null
+                                    ? 'Nenhuma data'
+                                    : formatter.format(_selectedDate!),
+                              ),
+                              IconButton(
+                                onPressed: _presentDatePicket,
+                                icon: Icon(Icons.calendar_month),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _amountController,
+                            maxLength: 50,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              prefixText: '\$ ',
+                              label: Text('Valor'),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                _selectedDate == null
+                                    ? 'Nenhuma data'
+                                    : formatter.format(_selectedDate!),
+                              ),
+                              IconButton(
+                                onPressed: _presentDatePicket,
+                                icon: Icon(Icons.calendar_month),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 16),
+
+                  if (width >= 600)
+                    Row(
+                      children: [
+                        const Spacer(),
+
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Cancelar'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _submitExpenseData,
+                          child: const Text('Salvar'),
+                        ),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        DropdownButton(
+                          value: _seletedCategory,
+                          items: Category.values
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  value: category,
+                                  child: Text(category.name.toUpperCase()),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setState(() {
+                              _seletedCategory = value;
+                            });
+                          },
+                        ),
+                        const Spacer(),
+
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Cancelar'),
+                        ),
+                        ElevatedButton(
+                          onPressed: _submitExpenseData,
+                          child: const Text('Salvar'),
+                        ),
+                      ],
+                    ),
+                ],
               ),
-              ElevatedButton(
-                onPressed: _submitExpenseData,
-                child: const Text('Salvar'),
-              ),
-            ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
