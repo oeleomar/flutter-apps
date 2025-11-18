@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:meals_app/screens/categories.dart';
 
 final theme = ThemeData(
   colorScheme: ColorScheme.fromSeed(
@@ -12,7 +13,8 @@ final theme = ThemeData(
 void main() {
   runApp(
     MaterialApp(
-      home: Text("Hello World"),
+      theme: theme,
+      home: CategoriesScreen(),
     ),
   );
 }
