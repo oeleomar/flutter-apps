@@ -12,6 +12,11 @@ class MealDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(meal.title),
       ),
+      body: Image.network(
+        meal.imageUrl,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      ),
     );
   }
 }
