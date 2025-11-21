@@ -15,14 +15,20 @@ class GroceryList extends StatefulWidget {
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItem> _groceryItems = [];
   bool _isLoading = true;
+  String? _error;
 
   void _loadItems() async {
     final url = Uri.https(
       'flutter-prep-892fa-default-rtdb.firebaseio.com',
       'shopping-list.json',
     );
-
     final result = await http.get(url);
+
+    if (result.statusCode >= 400) {
+      setState(() {
+        _error = 'Erro ao buscar informações';
+      });
+    }
 
     final Map<String, dynamic> listData = json.decode(result.body);
     final List<GroceryItem> loadedItems = [];
@@ -132,6 +138,12 @@ class _GroceryListState extends State<GroceryList> {
             trailing: Text(_groceryItems[index].quantity.toString()),
           ),
         ),
+      );
+    }
+
+    if (_error != null) {
+      currentWidget = Center(
+        child: Text(_error!),
       );
     }
 
