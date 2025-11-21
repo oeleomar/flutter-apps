@@ -20,10 +20,15 @@ class _NewItemState extends State<NewItem> {
   String _enteredName = '';
   int _enteredQuatity = 1;
   var _selectedCategory = categories[Categories.other]!;
+  bool _isSending = false;
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      setState(() {
+        _isSending = true;
+      });
 
       final url = Uri.https(
         'flutter-prep-892fa-default-rtdb.firebaseio.com',
@@ -152,14 +157,22 @@ class _NewItemState extends State<NewItem> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () {
-                      _formKey.currentState!.reset();
-                    },
+                    onPressed: _isSending
+                        ? null
+                        : () {
+                            _formKey.currentState!.reset();
+                          },
                     child: const Text('Reset'),
                   ),
                   ElevatedButton(
-                    onPressed: _saveItem,
-                    child: const Text('Adicionar Item'),
+                    onPressed: _isSending ? null : _saveItem,
+                    child: _isSending
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text('Adicionar Item'),
                   ),
                 ],
               ),
