@@ -22,37 +22,51 @@ class _GroceryListState extends State<GroceryList> {
       'flutter-prep-892fa-default-rtdb.firebaseio.com',
       'shopping-list.json',
     );
-    final result = await http.get(url);
 
-    if (result.statusCode >= 400) {
+    try {
+      final result = await http.get(url);
+
+      if (result.statusCode >= 400) {
+        setState(() {
+          _error = 'Erro ao buscar informações';
+        });
+      }
+
+      if (result.body == 'null') {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final Map<String, dynamic> listData = json.decode(result.body);
+      final List<GroceryItem> loadedItems = [];
+      for (final item in listData.entries) {
+        final category = categories.entries
+            .firstWhere(
+              (catItem) => catItem.value.title == item.value['category'],
+            )
+            .value;
+
+        loadedItems.add(
+          GroceryItem(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: category,
+          ),
+        );
+      }
+
+      setState(() {
+        _groceryItems = loadedItems;
+        _isLoading = false;
+      });
+    } catch (err) {
       setState(() {
         _error = 'Erro ao buscar informações';
       });
     }
-
-    final Map<String, dynamic> listData = json.decode(result.body);
-    final List<GroceryItem> loadedItems = [];
-    for (final item in listData.entries) {
-      final category = categories.entries
-          .firstWhere(
-            (catItem) => catItem.value.title == item.value['category'],
-          )
-          .value;
-
-      loadedItems.add(
-        GroceryItem(
-          id: item.key,
-          name: item.value['name'],
-          quantity: item.value['quantity'],
-          category: category,
-        ),
-      );
-    }
-
-    setState(() {
-      _groceryItems = loadedItems;
-      _isLoading = false;
-    });
   }
 
   void _addItem() async {
@@ -69,32 +83,25 @@ class _GroceryListState extends State<GroceryList> {
     });
   }
 
-  void _onRemoveItem(GroceryItem item) {
-    final itemIndex = _groceryItems.indexOf(item);
+  void _onRemoveItem(GroceryItem item) async {
+    final index = _groceryItems.indexOf(item);
 
     setState(() {
       _groceryItems.remove(item);
     });
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(
-      SnackBar(
-        duration: const Duration(seconds: 3),
-        content: const Text(
-          "Item apagado",
-        ),
-        action: SnackBarAction(
-          label: "Desfazer",
-          onPressed: () {
-            setState(() {
-              _groceryItems.insert(itemIndex, item);
-            });
-          },
-        ),
-      ),
+    final url = Uri.https(
+      'flutter-prep-892fa-default-rtdb.firebaseio.com',
+      'shopping-list/${item.id}.json',
     );
+
+    final response = await http.delete(url);
+
+    if (response.statusCode >= 400) {
+      setState(() {
+        _groceryItems.insert(index, item);
+      });
+    }
   }
 
   @override
