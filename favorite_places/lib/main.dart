@@ -1,15 +1,16 @@
-import 'package:favorite_places/screens/places.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:favorite_places/screens/places.dart';
+
 final colorScheme = ColorScheme.fromSeed(
-  seedColor: const Color.fromARGB(255, 102, 6, 247),
+  seedColor: const Color.fromARGB(255, 255, 255, 255),
   onSurface: const Color.fromARGB(255, 56, 49, 66),
   brightness: Brightness.dark,
 );
 
 final theme = ThemeData().copyWith(
-  scaffoldBackgroundColor: colorScheme.onSurface,
   colorScheme: colorScheme,
   textTheme: GoogleFonts.ubuntuCondensedTextTheme().copyWith(
     titleSmall: GoogleFonts.ubuntuCondensed(fontWeight: FontWeight.bold),
@@ -19,7 +20,7 @@ final theme = ThemeData().copyWith(
 );
 
 void main() {
-  runApp(const MyApp());
+  runApp(ProviderScope(child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
