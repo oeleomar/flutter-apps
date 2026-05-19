@@ -8,10 +8,11 @@ class UserPlacesNotifier extends Notifier<List<Place>> {
     return [];
   }
 
-  void addPlace(String title, File file) {
+  void addPlace(String title, File file, PlaceLocation placeLocation) {
     final newPlace = Place(
       title: title,
       file: file,
+      placeLocation: placeLocation,
     );
     state = [newPlace, ...state];
   }

@@ -1,12 +1,15 @@
 import 'dart:convert';
 
 import 'package:favorite_places/env.dart';
+import 'package:favorite_places/models/place.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:http/http.dart' as http;
 
 class LocationInput extends StatefulWidget {
-  const LocationInput({super.key});
+  const LocationInput({super.key, required this.onPickLocation});
+
+  final Function(PlaceLocation location) onPickLocation;
 
   @override
   State<LocationInput> createState() {
@@ -15,8 +18,16 @@ class LocationInput extends StatefulWidget {
 }
 
 class _LocationInputState extends State<LocationInput> {
-  Location? _pickedLocation;
+  PlaceLocation? _pickedLocation;
   var _isGettingLocation = false;
+
+  String get locationImage {
+    if (_pickedLocation == null) return "";
+    final lat = _pickedLocation!.latitude;
+    final lgt = _pickedLocation!.longitude;
+
+    return "https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lgt&zoom=16&size=600x300&maptype=roadmap&markers=color:red%7Clabel:A%7C$lat,$lgt&key=${Env.GOOGLE_API_MAPS}";
+  }
 
   void _getCurrentLocation() async {
     Location location = Location();
@@ -50,6 +61,8 @@ class _LocationInputState extends State<LocationInput> {
     final lon = locationData.longitude;
     final apiKey = String.fromEnvironment("GOOGLE_MAPS_KEY");
 
+    if (lat == null || lon == null) return;
+
     if (apiKey.isNotEmpty) {
       throw Exception("GOOGLE API NOT AVALIABLE");
     }
@@ -61,13 +74,17 @@ class _LocationInputState extends State<LocationInput> {
     final response = await http.get(url);
     final responseData = json.decode(response.body);
     final address = responseData["results"][0]["formatted_address"];
-    
-
-    print(url);
 
     setState(() {
+      _pickedLocation = PlaceLocation(
+        address: address,
+        latitude: lat,
+        longitude: lon,
+      );
       _isGettingLocation = false;
     });
+
+    widget.onPickLocation(_pickedLocation!);
   }
 
   @override
@@ -79,6 +96,15 @@ class _LocationInputState extends State<LocationInput> {
         color: Theme.of(context).colorScheme.onSurface,
       ),
     );
+
+    if (_pickedLocation != null) {
+      previewContent = Image.network(
+        locationImage,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
+    }
 
     if (_isGettingLocation) {
       previewContent = const CircularProgressIndicator();
