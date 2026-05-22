@@ -1,6 +1,11 @@
 // ignore_for_file: unused_local_variable
 
+import 'dart:io';
+
+import 'package:chat_app/widgets/user_image_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
 final _firebase = FirebaseAuth.instance;
@@ -18,19 +23,23 @@ class _AuthScreenState extends State<AuthScreen> {
   var _isLoading = false;
   String _enteredEmail = "";
   String _enteredPassword = "";
+  String _enteredUsername = '';
+  File? _selectedImage;
 
   void _onSubmit() async {
-    setState(() {
-      _isLoading = true;
-    });
     final isValid = _formKey.currentState!.validate();
 
-    if (!isValid) return;
+    if (!isValid || !_isLogin && _selectedImage == null) return;
 
     _formKey.currentState!.save();
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       if (_isLogin) {
+        //Login User
         final userCredential = await _firebase.signInWithEmailAndPassword(
           email: _enteredEmail,
           password: _enteredPassword,
@@ -40,10 +49,27 @@ class _AuthScreenState extends State<AuthScreen> {
           _isLoading = false;
         });
       } else {
+        //Create user
         final userCredential = await _firebase.createUserWithEmailAndPassword(
           email: _enteredEmail,
           password: _enteredPassword,
         );
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('user_images')
+            .child('${userCredential.user!.uid}.jpg');
+
+        await storageRef.putFile(_selectedImage!);
+        final downloadURL = await storageRef.getDownloadURL();
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+              'username': _enteredUsername,
+              'email': _enteredEmail,
+              'image_url': downloadURL,
+            });
+
         setState(() {
           _isLoading = false;
         });
@@ -91,6 +117,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if (!_isLogin)
+                            UserImagePicker(
+                              onPickImage: (pickedImage) {
+                                _selectedImage = pickedImage;
+                              },
+                            ),
                           TextFormField(
                             decoration: const InputDecoration(
                               labelText: "Email",
@@ -112,6 +144,26 @@ class _AuthScreenState extends State<AuthScreen> {
                             },
                           ),
 
+                          if (!_isLogin)
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                labelText: 'Usuário',
+                              ),
+                              enableSuggestions: false,
+                              validator: (value) {
+                                if (value == null ||
+                                    value.trim().length < 3 ||
+                                    value.isEmpty) {
+                                  return "Usuário precisa ser maior";
+                                }
+
+                                return null;
+                              },
+                              onSaved: (newValue) {
+                                _enteredUsername = newValue!;
+                              },
+                            ),
+
                           TextFormField(
                             decoration: const InputDecoration(
                               labelText: "Senha",
@@ -129,30 +181,34 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
 
                           const SizedBox(height: 12),
+                          if (_isLoading)
+                            CircularProgressIndicator(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
 
-                          ElevatedButton(
-                            onPressed: _isLoading ? null : _onSubmit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer,
+                          if (!_isLoading)
+                            ElevatedButton(
+                              onPressed: _isLoading ? null : _onSubmit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
+                              ),
+                              child: Text(_isLogin ? "Login" : "Inscreva-se"),
                             ),
-                            child: _isLoading
-                                ? CircularProgressIndicator()
-                                : Text(_isLogin ? "Login" : "Inscreva-se"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _isLogin = !_isLogin;
-                              });
-                            },
-                            child: Text(
-                              _isLogin
-                                  ? "Criar uma conta"
-                                  : "Já tenho uma conta. Fazer Login!",
+                          if (!_isLoading)
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isLogin = !_isLogin;
+                                });
+                              },
+                              child: Text(
+                                _isLogin
+                                    ? "Criar uma conta"
+                                    : "Já tenho uma conta. Fazer Login!",
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
