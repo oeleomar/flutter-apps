@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:minimal_weather_app/screens/weather.dart';
 
-void main() {
+Future<void> main() async {
   runApp(const MyApp());
 }
 
@@ -9,6 +10,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: Text('InitialCommit'));
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: WeatherScreen(),
+    );
   }
 }
